@@ -7,6 +7,8 @@ trigger:
       - main
       - dev
 
+pr: none
+
 stages:
   - stage: preview
     displayName: pulumi preview
