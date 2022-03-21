@@ -8,7 +8,7 @@ trigger:
       - dev
 
 pool:
-  name: ubuntu-latest
+  vmImage: ubuntu-latest
   container: pulumi/pulumi-python:latest
 
 stages:
