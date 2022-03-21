@@ -9,6 +9,9 @@ trigger:
 
 pr: none
 
+pool:
+  vmImage: ubuntu-latest
+
 stages:
   - stage: preview
     displayName: pulumi preview
@@ -16,9 +19,6 @@ stages:
       PULUMI_ACCESS_TOKEN: $(PULUMI_ACCESS_TOKEN_SECRET)
     jobs:
       - job: preview
-        pool:
-          vmImage: ubuntu-latest
-          container: pulumi/pulumi-python:latest
         dependsOn: []
         displayName: pulumi preview
         steps:
@@ -29,11 +29,12 @@ stages:
               key: '$(Build.SourceBranchName)_venv'
               path: venv
           - task: Pulumi@1
+            displayName: pulumi preview
             inputs:
               azureSubscription: 'Free Trial'
               command: 'preview'
               stack: '$(Build.SourceBranchName)'
-              
+
   - stage: up
     displayName: pulumi up
     dependsOn: preview
@@ -47,9 +48,6 @@ stages:
         strategy:
           runOnce:
             deploy:
-              pool:
-                vmImage: ubuntu-latest
-                container: pulumi/pulumi-python:latest
               steps:
                 - checkout: self
                 - task: Cache@2
@@ -58,9 +56,10 @@ stages:
                     key: '$(Build.SourceBranchName)_venv'
                     path: venv
                 - task: Pulumi@1
+                  displayName: pulumi up
                   inputs:
                     azureSubscription: 'Free Trial'
                     command: 'up'
-                    args: '--emoji --yes --color always'
+                    args: '--yes'
                     stack: '$(Build.SourceBranchName)'
                     createStack: true
