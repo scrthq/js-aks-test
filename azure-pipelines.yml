@@ -22,6 +22,7 @@ stages:
         dependsOn: []
         displayName: pulumi preview
         steps:
+          - checkout: self
           - task: Cache@2
             displayName: Use cached venv
             inputs:
@@ -50,6 +51,7 @@ stages:
                 vmImage: ubuntu-latest
                 container: pulumi/pulumi-python:latest
               steps:
+                - checkout: self
                 - task: Cache@2
                   displayName: Use cached venv
                   inputs:
