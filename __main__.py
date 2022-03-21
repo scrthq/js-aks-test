@@ -11,13 +11,13 @@ ssh_public_key = config.get_secret("sshPublicKey")
 location = config.require("location")
 
 resource_group = resources.ResourceGroup(
-    "aks",
+    "aksRg",
     location=location,
 )
 
 ad_app = ad.Application(
-    "aks",
-    display_name="aks-app",
+    "aksApp",
+    display_name="pulumi-aks-app",
 )
 
 ad_sp = ad.ServicePrincipal("aksSp", application_id=ad_app.application_id)
@@ -31,7 +31,7 @@ ad_sp_password = ad.ServicePrincipalPassword(
 
 aks_cluster_configs = [
     {
-        "name": "akscluster",
+        "name": location,
         "location": location,
         "node_count": 1,
         "node_size": "standard_d2s_v5",
@@ -42,6 +42,7 @@ cluster_names = []
 for cluster_config in aks_cluster_configs:
     cluster = containerservice.ManagedCluster(
         f"aksCluster-{cluster_config['name']}",
+        opts=pulumi.ResourceOptions(depends_on=[ad_sp, ad_sp_password]),
         resource_group_name=resource_group.name,
         linux_profile=containerservice.ContainerServiceLinuxProfileArgs(
             admin_username="aksuser",
@@ -71,5 +72,4 @@ for cluster_config in aks_cluster_configs:
     cluster_names.append(cluster.name)
 
 pulumi.export("aks_cluster_names", pulumi.Output.all(cluster_names))
-pulumi.export("sp_id", ad_sp_password.id)
-pulumi.export("sp_key_id", ad_sp_password.key_id)
+pulumi.export("sp_details", pulumi.Output.all(ad_sp_password))

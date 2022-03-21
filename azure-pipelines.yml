@@ -1,21 +1,65 @@
 variables:
-  - name:
+  - group: deployment-vars
 
 trigger:
   branches:
     include:
       - main
+      - dev
+
+pr: none
 
 pool:
-  name: ubuntu-latest
-  container: pulumi/pulumi-python:latest
+  vmImage: ubuntu-latest
 
 stages:
-  - stage: Version
-    displayName: pulumi version
+  - stage: preview
+    displayName: pulumi preview
+    variables:
+      PULUMI_ACCESS_TOKEN: $(PULUMI_ACCESS_TOKEN_SECRET)
     jobs:
-      - job: Version
+      - job: preview
         dependsOn: []
-        displayName: pulumi version
+        displayName: pulumi preview
         steps:
-          - script: pulumi version
+          - checkout: self
+          - task: Cache@2
+            displayName: Use cached venv
+            inputs:
+              key: '$(Build.SourceBranchName)_venv'
+              path: venv
+          - task: Pulumi@1
+            displayName: pulumi preview
+            inputs:
+              azureSubscription: 'Free Trial'
+              command: 'preview'
+              stack: '$(Build.SourceBranchName)'
+
+  - stage: up
+    displayName: pulumi up
+    dependsOn: preview
+    variables:
+      PULUMI_ACCESS_TOKEN: $(PULUMI_ACCESS_TOKEN_SECRET)
+    jobs:
+      - deployment: up
+        environment: 'aks-rg'
+        dependsOn: []
+        displayName: pulumi up
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+                - task: Cache@2
+                  displayName: Use cached venv
+                  inputs:
+                    key: '$(Build.SourceBranchName)_venv'
+                    path: venv
+                - task: Pulumi@1
+                  displayName: pulumi up
+                  inputs:
+                    azureSubscription: 'Free Trial'
+                    command: 'up'
+                    args: '--yes'
+                    stack: '$(Build.SourceBranchName)'
+                    createStack: true
