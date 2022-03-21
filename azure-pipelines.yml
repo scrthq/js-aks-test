@@ -1,5 +1,5 @@
 variables:
-  - name:
+  - group: deployment-vars
 
 trigger:
   branches:
@@ -11,11 +11,20 @@ pool:
   container: pulumi/pulumi-python:latest
 
 stages:
-  - stage: Version
-    displayName: pulumi version
+  - stage: preview
+    displayName: pulumi preview
+    variables:
+      PULUMI_ACCESS_TOKEN: $(PULUMI_ACCESS_TOKEN)
     jobs:
-      - job: Version
+      - job: preview
+
         dependsOn: []
-        displayName: pulumi version
+        displayName: pulumi preview
         steps:
           - script: pulumi version
+          - task: Pulumi@1
+            inputs:
+              azureSubscription: 'Free Trial(9589b86c-0184-4e83-995c-559cbf7b723a)'
+              command: 'preview'
+              stack: '$(Build.SourceBranchName)'
+          
