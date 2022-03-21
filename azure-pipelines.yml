@@ -20,6 +20,12 @@ stages:
         dependsOn: []
         displayName: pulumi preview
         steps:
+          - task: Cache@2
+            displayName: Use cached venv
+            inputs:
+              key: '$(Build.Repository.Name)_$(Build.SourceBranchName)_venv'
+              path: venv
+              cacheHitVar: VENV_CACHE_RESTORED
           - script: pulumi version
           - task: Pulumi@1
             inputs:
