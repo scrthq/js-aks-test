@@ -27,10 +27,38 @@ stages:
             inputs:
               key: '$(Build.SourceBranchName)_venv'
               path: venv
-          - script: pulumi version
           - task: Pulumi@1
             inputs:
               azureSubscription: 'Free Trial(9589b86c-0184-4e83-995c-559cbf7b723a)'
               command: 'preview'
               stack: '$(Build.SourceBranchName)'
-          
+              
+  - stage: up
+    displayName: pulumi up
+    dependsOn: preview
+    variables:
+      PULUMI_ACCESS_TOKEN: $(PULUMI_ACCESS_TOKEN_SECRET)
+    jobs:
+      - deployment: up
+        environment: 'aks-rg'
+        dependsOn: []
+        displayName: pulumi up
+        strategy:
+          runOnce:
+            deploy:
+              pool:
+                vmImage: ubuntu-latest
+                container: pulumi/pulumi-python:latest
+              steps:
+                - task: Cache@2
+                  displayName: Use cached venv
+                  inputs:
+                    key: '$(Build.SourceBranchName)_venv'
+                    path: venv
+                - task: Pulumi@1
+                  inputs:
+                    azureSubscription: 'Free Trial(9589b86c-0184-4e83-995c-559cbf7b723a)'
+                    command: 'up'
+                    args: '--emoji --yes --color always'
+                    stack: '$(Build.SourceBranchName)'
+                    createStack: true
