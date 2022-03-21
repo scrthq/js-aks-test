@@ -31,7 +31,7 @@ ad_sp_password = ad.ServicePrincipalPassword(
 
 aks_cluster_configs = [
     {
-        "name": "akscluster",
+        "name": location,
         "location": location,
         "node_count": 1,
         "node_size": "standard_d2s_v5",
@@ -42,6 +42,7 @@ cluster_names = []
 for cluster_config in aks_cluster_configs:
     cluster = containerservice.ManagedCluster(
         f"aksCluster-{cluster_config['name']}",
+        opts=pulumi.ResourceOptions(depends_on=[ad_sp, ad_sp_password]),
         resource_group_name=resource_group.name,
         linux_profile=containerservice.ContainerServiceLinuxProfileArgs(
             admin_username="aksuser",
