@@ -1,0 +1,7 @@
+name: js-aks-test
+runtime:
+  name: python
+  options:
+    virtualenv: venv
+description: Python CDKTF app that is building an Azure Resource Group with an AKS
+  cluster as well as a container image for a web API.

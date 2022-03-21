@@ -1,0 +1,21 @@
+variables:
+  - name:
+
+trigger:
+  branches:
+    include:
+      - main
+
+pool:
+  name: ubuntu-latest
+  container: pulumi/pulumi-python:latest
+
+stages:
+  - stage: Version
+    displayName: pulumi version
+    jobs:
+      - job: Version
+        dependsOn: []
+        displayName: pulumi version
+        steps:
+          - script: pulumi version
